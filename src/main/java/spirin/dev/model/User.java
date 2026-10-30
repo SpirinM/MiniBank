@@ -7,19 +7,17 @@ public class User {
     private String login;
     private final List<Account> accountList;
 
-    public User(Long id, String login, List<Account> accountList)
-    {
+    public User(Long id, String login, List<Account> accountList) {
         this.id = id;
         this.login = login;
         this.accountList = accountList;
     }
 
-    public Long getId()
-    {
+    public Long getId() {
         return id;
     }
-    public String getLogin()
-    {
+
+    public String getLogin() {
         return login;
     }
 
@@ -28,8 +26,7 @@ public class User {
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "id: " + id + "; " +
                 "login: " + login + "; " +
                 "accounts: " + accountList;

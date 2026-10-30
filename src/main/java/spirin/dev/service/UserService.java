@@ -12,61 +12,52 @@ import java.util.*;
 @PropertySource("classpath:application.properties")
 public class UserService {
     private Long id = 0L;
-    private final Map<Long, User> userList = new HashMap<>();
+    private final Map<Long, User> users = new HashMap<>();
     private final AccountService accountService;
 
-    public UserService(AccountService accountService)
-    {
+    public UserService(AccountService accountService) {
         this.accountService = accountService;
     }
 
     @Value("${account.default-amount}")
     int defaultAmount;
 
-    public void addUser(String login)
-    {
-        if (userList.values().stream().noneMatch(i -> i.getLogin().equals(login)))
-        {
+    public String addUser(String login) {
+        if (users.values().stream().noneMatch(i -> i.getLogin().equals(login))) {
             id++;
             List<Account> accountList = new ArrayList<>();
             accountList.add(accountService.createAccount(id, defaultAmount));
             User user = new User(id, login, accountList);
-            userList.put(id, user);
-            System.out.println("User created: " + user.toString() + "\n");
-        }
-        else {
-            System.out.println("Error\n");
+            users.put(id, user);
+            return user.toString();
+        } else {
+            throw new IllegalArgumentException("Error: A user with the login '" + login + "' already exists.");
         }
     }
 
-    public void showAllUsers()
-    {
-        userList.values().forEach(System.out::println);
+    public void showAllUsers() {
+        users.values().forEach(System.out::println);
     }
 
-    public void createAccountForUser(Long id)
-    {
-        if (userList.values().stream().allMatch(i -> i.getId().equals(id)))
-        {
-            User user = userList.get(id);
+    public String createAccountForUser(Long id) {
+        if (users.values().stream().anyMatch(i -> i.getId().equals(id))) {
+            User user = users.get(id);
             Account acc = accountService.createAccount(id, 0);
             user.getAccountList().add(acc);
-            System.out.println("Account created: " + acc.toString() + "\n");
-        }
-        else
-        {
-            System.out.println("Error\n");
+            return acc.toString();
+        } else {
+            throw new NoSuchElementException("Error: User with id '" + id + "' not found.");
         }
     }
 
-    public void accountCloseForUser(Long id)
-    {
-        Long userId = accountService.accountClose(id);
-        if (userId != 0L)
-        {
-            userList.get(userId)
-                    .getAccountList()
-                    .removeIf(i -> i.getId().equals(id));
-        }
+    public String accountCloseForUser(Long accId) {
+        Account acc = accountService.accountClose(accId);
+        int money = acc.getMoneyAmount();
+        users.get(acc.getUserId())
+                .getAccountList()
+                .removeIf(i -> i.getId().equals(acc.getId()));
+        return "Account " + accId +
+                " closed. Remaining balance " + money +
+                " has been transferred to another account." + "\n";
     }
 }
